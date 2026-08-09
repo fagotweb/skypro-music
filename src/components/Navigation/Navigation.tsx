@@ -1,8 +1,19 @@
+"use client";
+
+import { useState } from "react";
 import Link from 'next/link';
 import Image from 'next/image';
 import styles from './navigation.module.css';
 
 export default function Navigation() {
+    // Создаем состояние: true — меню открыто, false — скрыто
+  const [isOpen, setIsOpen] = useState(true);
+
+  // Функция для переключения состояния меню
+  const toggleMenu = () => {
+    setIsOpen(!isOpen);
+  };
+
   return (
     <nav className={styles.main__nav}>
       <div className={styles.nav__logo}>
@@ -15,11 +26,16 @@ export default function Navigation() {
           priority
         />
       </div>
-      <div className={styles.nav__burger}>
+
+      {/* Вешаем событие клика на кнопку-бургер */}
+      <div className={styles.nav__burger} onClick={toggleMenu}>
         <span className={styles.burger__line}></span>
         <span className={styles.burger__line}></span>
         <span className={styles.burger__line}></span>
       </div>
+
+      {/* Меню отображается только если isOpen === true */}
+      {isOpen && (
       <div className={styles.nav__menu}>
         <ul className={styles.menu__list}>
           <li className={styles.menu__item}>
@@ -39,6 +55,7 @@ export default function Navigation() {
           </li>
         </ul>
       </div>
+      )}
     </nav>
   );
 }
