@@ -115,3 +115,32 @@
   text-align: right;
   color: #696969;
 }
+
+/* Исходный стиль для иконки */
+.track__titleSvg {
+  width: 18px;
+  height: 17px;
+  fill: transparent;
+  stroke: #4e4e4e;
+}
+
+/* Класс пульсации, который работает только во время воспроизведения */
+.pulse {
+  animation: pulseAnimation 1.2s infinite ease-in-out;
+}
+
+/* Сама анимация изменения масштаба и прозрачности */
+@keyframes pulseAnimation {
+  0% {
+    opacity: 0.5;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 0.5;
+    transform: scale(0.9);
+  }
+}

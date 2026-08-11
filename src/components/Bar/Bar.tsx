@@ -1,10 +1,59 @@
+'use client';
+
 import Link from 'next/link';
 import styles from './bar.module.css';
 import Image from 'next/image';
+import { useAppDispatch, useAppSelector } from '@/store/store';
+import { useEffect, useRef } from 'react';
+import { setIsPlay } from '@/store/features/trackSlice';
 
 export default function Bar() {
+  // Получаем и трек, и статус проигрывания из Redux
+  const currentTrack = useAppSelector((state) => state.tracks.currentTrack);
+  const dispatch = useAppDispatch();
+  const isPlay = useAppSelector((state) => state.tracks.isPlay);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Автоматический запуск аудио при смене трека в списке
+  useEffect(() => {
+    if (currentTrack && audioRef.current) {
+      audioRef.current.play();
+      dispatch(setIsPlay(true));
+    }
+  }, [currentTrack, dispatch]);
+
+  if (!currentTrack) return <></>;
+
+  // Функция переключения состояния воспроизведения (Play / Pause)
+  // const togglePlay = () => {
+  //   if (!audioRef.current) return;
+
+  //   if (isPlay) {
+  //     audioRef.current.pause();
+  //     dispatch(setIsPlay(false));
+  //   } else {
+  //     audioRef.current.play();
+  //     dispatch(setIsPlay(true));
+  //   }
+  // };
+
+  const playTrack = () => {
+    if (audioRef.current) {
+      audioRef.current.play();
+      dispatch(setIsPlay(true));
+    }
+  };
+
+  const pauseTrack = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      dispatch(setIsPlay(false));
+    }
+  };
+
   return (
     <div className={styles.bar}>
+      <audio ref={audioRef} src={currentTrack.track_file} />
       <div className={styles.bar__content}>
         <div className={styles.bar__playerProgress}></div>
         <div className={styles.bar__playerBlock}>
@@ -19,15 +68,34 @@ export default function Bar() {
                   className={styles.player__btnPrevSvg}
                 />
               </div>
-              <div className={`${styles.player__btnPlay} ${styles.btn}`}>
-                <Image
-                  src="/img/icon/play.svg"
-                  alt="play"
-                  width={22}
-                  height={20}
-                  className={styles.player__btnPlaySvg}
-                />
-              </div>
+              {/* Динамическая смена иконки и вызов togglePlay */}
+              {isPlay ? (
+                <div
+                  className={`${styles.player__btnPlay} ${styles.btn}`}
+                  onClick={pauseTrack}
+                >
+                  <Image
+                    src="/img/icon/pause.svg"
+                    alt="pause"
+                    width={22}
+                    height={20}
+                    className={styles.player__btnPlaySvg}
+                  />
+                </div>
+              ) : (
+                <div
+                  className={`${styles.player__btnPlay} ${styles.btn}`}
+                  onClick={playTrack}
+                >
+                  <Image
+                    src="/img/icon/play.svg"
+                    alt="play"
+                    width={22}
+                    height={20}
+                    className={styles.player__btnPlaySvg}
+                  />
+                </div>
+              )}
               <div className={styles.player__btnNext}>
                 <Image
                   src="/img/icon/next.svg"
@@ -56,7 +124,7 @@ export default function Bar() {
                 />
               </div>
             </div>
-
+            {/* Блок с названием трека в плеере */}
             <div className={styles.player__trackPlay}>
               <div className={styles.trackPlay__contain}>
                 <div className={styles.trackPlay__image}>
@@ -70,12 +138,14 @@ export default function Bar() {
                 </div>
                 <div className={styles.trackPlay__author}>
                   <Link className={styles.trackPlay__authorLink} href="#">
-                    Ты та...
+                    {/* Выводим название текущего трека */}
+                    {currentTrack.name || 'Без названия'}
                   </Link>
                 </div>
                 <div className={styles.trackPlay__album}>
                   <Link className={styles.trackPlay__albumLink} href="#">
-                    Баста
+                    {/* Выводим имя исполнителя */}
+                    {currentTrack.author || 'Неизвестный исполнитель'}
                   </Link>
                 </div>
               </div>
