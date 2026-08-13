@@ -6,15 +6,16 @@ import { TrackType } from '@/sharedTypes/sharedTypes';
 import { formatTime } from '@/utils/helpers';
 import styles from './track.module.css';
 import { useAppDispatch, useAppSelector } from '@/store/store';
-import { setCurrentTrack } from '@/store/features/trackSlice';
+import { setCurrentPlaylist, setCurrentTrack } from '@/store/features/trackSlice';
 import classNames from 'classnames';
 
 // Описываем, что компонент Track принимает один трек в качестве props
 interface TrackProps {
   track: TrackType;
+  playlist: TrackType[];
 }
 
-export default function Track({ track }: TrackProps) {
+export default function Track({ track, playlist }: TrackProps) {
   const dispatch = useAppDispatch();
   const isPlay = useAppSelector((state) => state.tracks.isPlay);
 
@@ -28,12 +29,17 @@ export default function Track({ track }: TrackProps) {
   const isCurrentPlaying = isCurrent && isPlay;
 
   const onClickTrack = () => {
-    dispatch(setCurrentTrack(track));
-  };
+    dispatch(setCurrentTrack(track))
+  }
+
+  const onClickCurrentTrack = () => {
+  dispatch(setCurrentTrack(track));
+  dispatch(setCurrentPlaylist(playlist));
+}
 
   return (
     <div className={styles.playlist__track} onClick={onClickTrack}>
-      <div className={styles.track__title}>
+      <div className={styles.track__title} onClick={onClickCurrentTrack}>
         <div className={styles.track__titleImage}>
           {isCurrent ? (
             /* Если трек выбран — точка отображается ВСЕГДА. 

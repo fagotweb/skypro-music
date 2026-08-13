@@ -4,8 +4,15 @@ import Link from 'next/link';
 import styles from './bar.module.css';
 import Image from 'next/image';
 import { useAppDispatch, useAppSelector } from '@/store/store';
-import { useEffect, useRef } from 'react';
-import { setIsPlay } from '@/store/features/trackSlice';
+import { useEffect, useRef, useState } from 'react';
+import {
+  setIsPlay,
+  setNextTrack,
+  setPrevTrack,
+  toggleShuffle,
+} from '@/store/features/trackSlice';
+import { getTimePanel } from '@/utils/helpers';
+import ProgressBar from '../ProgressBar/ProgressBar';
 
 export default function Bar() {
   // Получаем и трек, и статус проигрывания из Redux
@@ -13,6 +20,27 @@ export default function Bar() {
   const dispatch = useAppDispatch();
   const isPlay = useAppSelector((state) => state.tracks.isPlay);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const isShuffle = useAppSelector((state) => state.tracks.isShuffle);
+
+  const [isLoop, setIsLoop] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [volume, setVolume] = useState(0.55);
+  const [isLoadedTrack, setIsLoadedTrack] = useState(false);
+
+  useEffect(() => {
+    if (currentTrack && audioRef.current) {
+      audioRef.current
+        .play()
+        .then(() => {
+          // Переключаем статус в true только ПОСЛЕ успешного старта аудио
+          dispatch(setIsPlay(true));
+        })
+        .catch((error) => {
+          console.error('Ошибка автозапуска аудио:', error);
+        });
+    }
+  }, [currentTrack, dispatch]);
 
   // Автоматический запуск аудио при смене трека в списке
   useEffect(() => {
@@ -22,20 +50,23 @@ export default function Bar() {
     }
   }, [currentTrack, dispatch]);
 
+  // Сбрасываем статус загрузки, как только кликнули на новую песню
+  useEffect(() => {
+  if (currentTrack && audioRef.current) {
+    // 1. Сбрасываем статус загрузки
+    setIsLoadedTrack(false); 
+
+    audioRef.current.play()
+      .then(() => {
+        dispatch(setIsPlay(true)); 
+      })
+      .catch((error) => {
+        console.error('Ошибка автозапуска аудио:', error);
+      });
+  }
+
+}, [currentTrack, dispatch]);
   if (!currentTrack) return <></>;
-
-  // Функция переключения состояния воспроизведения (Play / Pause)
-  // const togglePlay = () => {
-  //   if (!audioRef.current) return;
-
-  //   if (isPlay) {
-  //     audioRef.current.pause();
-  //     dispatch(setIsPlay(false));
-  //   } else {
-  //     audioRef.current.play();
-  //     dispatch(setIsPlay(true));
-  //   }
-  // };
 
   const playTrack = () => {
     if (audioRef.current) {
@@ -51,15 +82,71 @@ export default function Bar() {
     }
   };
 
+  const onToggleLoop = () => {
+    setIsLoop(!isLoop);
+  };
+
+  const onTimeUpdate = () => {
+    if (audioRef.current) {
+      setCurrentTime(audioRef.current.currentTime); // Записываем вместо console.log
+    }
+  };
+
+  const onLoadedMetadata = () => {
+    if (audioRef.current) {
+      setDuration(audioRef.current.duration); // Запоминаем общую длину трека
+      setIsLoadedTrack(true);
+    }
+  };
+
+  const handleVolumeChange = (value: string) => {
+    const normalizedVolume = Number(value) / 100;
+    setVolume(normalizedVolume);
+
+    if (audioRef.current) {
+      audioRef.current.volume = normalizedVolume;
+    }
+  };
+
+  const onChangeProgress = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (audioRef.current) {
+      const inputTime = Number(e.target.value);
+      audioRef.current.currentTime = inputTime;
+    }
+  };
+
   return (
     <div className={styles.bar}>
-      <audio ref={audioRef} src={currentTrack.track_file} />
       <div className={styles.bar__content}>
-        <div className={styles.bar__playerProgress}></div>
+        <audio
+          className={styles.audio}
+          // controls
+          autoPlay
+          ref={audioRef}
+          src={currentTrack.track_file}
+          loop={isLoop} /* <-- Зацикливание зависит от состояния кнопки */
+          onTimeUpdate={onTimeUpdate}
+          onLoadedMetadata={onLoadedMetadata}
+          onEnded={() => dispatch(setNextTrack())} // <-- Когда трек кончится, плеер сам включит следующий
+        />
+        <div className={styles.player__loadingStatus}>
+          {!isLoadedTrack && <span>Идет загрузка...</span>}
+        </div>
+        <ProgressBar
+          max={duration || 0}
+          step={0.1}
+          readOnly={!isLoadedTrack}
+          value={currentTime}
+          onChange={onChangeProgress}
+        />
         <div className={styles.bar__playerBlock}>
           <div className={styles.bar__player}>
             <div className={styles.player__controls}>
-              <div className={styles.player__btnPrev}>
+              <div
+                className={styles.player__btnPrev}
+                onClick={() => dispatch(setPrevTrack())}
+              >
+                {/* Кнопка назад */}
                 <Image
                   src="/img/icon/prev.svg"
                   alt="prev"
@@ -68,7 +155,8 @@ export default function Bar() {
                   className={styles.player__btnPrevSvg}
                 />
               </div>
-              {/* Динамическая смена иконки и вызов togglePlay */}
+
+              {/* Кнопка Play/Pause */}
               {isPlay ? (
                 <div
                   className={`${styles.player__btnPlay} ${styles.btn}`}
@@ -96,7 +184,12 @@ export default function Bar() {
                   />
                 </div>
               )}
-              <div className={styles.player__btnNext}>
+
+              {/* Кнопка вперед */}
+              <div
+                className={styles.player__btnNext}
+                onClick={() => dispatch(setNextTrack())}
+              >
                 <Image
                   src="/img/icon/next.svg"
                   alt="next"
@@ -105,18 +198,33 @@ export default function Bar() {
                   className={styles.player__btnNextSvg}
                 />
               </div>
-              <div className={`${styles.player__btnRepeat} ${styles.btnIcon}`}>
+              {/* Кнопка Повтор (Зацикливание) */}
+              <div
+                className={`${styles.player__btnRepeat} ${styles.btnIcon}`}
+                onClick={onToggleLoop}
+              >
                 <Image
-                  src="/img/icon/repeat.svg"
+                  src={
+                    isLoop
+                      ? '/img/icon/repeat_active.svg'
+                      : '/img/icon/repeat.svg'
+                  } // <-- Меняем путь к файлу динамически!
                   alt="repeat"
                   width={18}
                   height={12}
                   className={styles.player__btnRepeatSvg}
                 />
               </div>
-              <div className={`${styles.player__btnShuffle} ${styles.btnIcon}`}>
+              <div
+                className={`${styles.player__btnShuffle} ${styles.btnIcon}`}
+                onClick={() => dispatch(toggleShuffle())}
+              >
                 <Image
-                  src="/img/icon/shuffle.svg"
+                  src={
+                    isShuffle
+                      ? '/img/icon/shuffle_active.svg'
+                      : '/img/icon/shuffle.svg'
+                  }
                   alt="shuffle"
                   width={19}
                   height={12}
@@ -197,7 +305,14 @@ export default function Bar() {
                   className={`${styles.volume__progressLine} ${styles.btn}`}
                   type="range"
                   name="range"
+                  value={volume * 100}
+                  onChange={(e) => handleVolumeChange(e.target.value)}
                 />
+              </div>
+
+              {/* Выводим панель времени */}
+              <div className={styles.player__timePanel}>
+                {getTimePanel(currentTime, duration)}
               </div>
             </div>
           </div>
