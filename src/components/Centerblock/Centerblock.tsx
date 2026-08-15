@@ -3,22 +3,22 @@ import cn from 'classnames';
 import styles from './centerblock.module.css';
 import Image from 'next/image';
 import Search from '../Search/Search';
-import { data } from '@/data';
+// import { data } from '@/data';
 import Track from '../Track/Track';
 import Filter from '../Filter/Filter';
+import { TrackType } from '@/sharedTypes/sharedTypes';
 
-export default function Centerblock() {
+interface CenterblockProps {
+  data: TrackType[];
+  title: string;
+}
+
+export default function Centerblock({ data, title }: CenterblockProps) {
   return (
     <div className={styles.centerblock}>
       <Search />
-      <h2 className={styles.centerblock__h2}>Треки</h2>
-      <Filter />
-      {/* <div className={styles.centerblock__filter}>
-        <div className={styles.filter__title}>Искать по:</div>
-        <div className={styles.filter__button}>исполнителю</div>
-        <div className={styles.filter__button}>году выпуска</div>
-        <div className={styles.filter__button}>жанру</div>
-      </div> */}
+      <h2 className={styles.centerblock__h2}>{title}</h2>
+      <Filter tracks={data} />      
       <div className={styles.centerblock__content}>
         <div className={styles.content__title}>
           <div className={cn(styles.playlistTitle__col, styles.col01)}>
@@ -42,8 +42,11 @@ export default function Centerblock() {
         </div>
 
         <div className={styles.content__playlist}>
-          {data.map((track) => (
-            <Track key={track._id} track={track} playlist={data} />
+          {data?.map((track) => (
+            <div key={track._id} className={styles.playlist__item}>
+              {' '}
+              <Track track={track} playlist={data} />
+            </div>
           ))}
         </div>
       </div>

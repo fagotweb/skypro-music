@@ -29,43 +29,23 @@ export default function Bar() {
   const [isLoadedTrack, setIsLoadedTrack] = useState(false);
 
   useEffect(() => {
-    if (currentTrack && audioRef.current) {
-      audioRef.current
-        .play()
-        .then(() => {
-          // Переключаем статус в true только ПОСЛЕ успешного старта аудио
-          dispatch(setIsPlay(true));
-        })
-        .catch((error) => {
-          console.error('Ошибка автозапуска аудио:', error);
-        });
+    if (!audioRef.current || !currentTrack) return;
+
+    if (isPlay) {
+      const playPromise = audioRef.current.play();
+
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {})
+          .catch((error) => {
+            console.info('Загрузка аудио была скорректирована:', error.message);
+          });
+      }
+    } else {
+      audioRef.current.pause();
     }
-  }, [currentTrack, dispatch]);
+  }, [currentTrack, isPlay]);
 
-  // Автоматический запуск аудио при смене трека в списке
-  useEffect(() => {
-    if (currentTrack && audioRef.current) {
-      audioRef.current.play();
-      dispatch(setIsPlay(true));
-    }
-  }, [currentTrack, dispatch]);
-
-  // Сбрасываем статус загрузки, как только кликнули на новую песню
-  useEffect(() => {
-  if (currentTrack && audioRef.current) {
-    // 1. Сбрасываем статус загрузки
-    setIsLoadedTrack(false); 
-
-    audioRef.current.play()
-      .then(() => {
-        dispatch(setIsPlay(true)); 
-      })
-      .catch((error) => {
-        console.error('Ошибка автозапуска аудио:', error);
-      });
-  }
-
-}, [currentTrack, dispatch]);
   if (!currentTrack) return <></>;
 
   const playTrack = () => {
@@ -88,13 +68,14 @@ export default function Bar() {
 
   const onTimeUpdate = () => {
     if (audioRef.current) {
-      setCurrentTime(audioRef.current.currentTime); // Записываем вместо console.log
+      setCurrentTime(audioRef.current.currentTime);
     }
   };
 
   const onLoadedMetadata = () => {
-    if (audioRef.current) {
-      setDuration(audioRef.current.duration); // Запоминаем общую длину трека
+    if (audioRef.current && currentTrack) {
+      setDuration(currentTrack.duration_in_seconds);
+
       setIsLoadedTrack(true);
     }
   };
@@ -115,6 +96,12 @@ export default function Bar() {
     }
   };
 
+  const onTrackEnded = () => {
+    if (!isLoop) {
+      dispatch(setNextTrack());
+    }
+  };
+
   return (
     <div className={styles.bar}>
       <div className={styles.bar__content}>
@@ -127,7 +114,7 @@ export default function Bar() {
           loop={isLoop} /* <-- Зацикливание зависит от состояния кнопки */
           onTimeUpdate={onTimeUpdate}
           onLoadedMetadata={onLoadedMetadata}
-          onEnded={() => dispatch(setNextTrack())} // <-- Когда трек кончится, плеер сам включит следующий
+          onEnded={onTrackEnded}
         />
         <div className={styles.player__loadingStatus}>
           {!isLoadedTrack && <span>Идет загрузка...</span>}

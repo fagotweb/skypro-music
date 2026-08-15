@@ -4,21 +4,30 @@ import { useState } from 'react';
 import cn from 'classnames';
 import FilterItem from '../FilterItem/FilterItem';
 import { getUniqueValuesByKey } from '@/utils/helpers';
-import { data } from '@/data';
 import styles from './filter.module.css';
+import { useAppDispatch, useAppSelector } from '@/store/store';
+import { TrackType } from '@/sharedTypes/sharedTypes';
+import { setYearFilter, toggleAuthorFilter, toggleGenreFilter } from '@/store/features/trackSlice';
 
-export default function Filter() {
+// 1. Указываем, что фильтр принимает живой массив треков из API
+interface FilterProps {
+  tracks: TrackType[];
+}
+
+export default function Filter({ tracks }: FilterProps) {
+  const dispatch = useAppDispatch(); // создаем диспетчер для работы кнопок
+  
   // 1. Стейт для открытия окон ('author' | 'year' | 'genre' | null)
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
-  // 2. Стейты для хранения выбранных настроек
-  const [selectedAuthors, setSelectedAuthors] = useState<string[]>([]);
-  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
-  const [selectedYear, setSelectedYear] = useState<string>('По умолчанию');
+  // Берем выбранные фильтры из Redux
+  const selectedAuthors = useAppSelector((state) => state.tracks.selectedAuthors);
+  const selectedGenres = useAppSelector((state) => state.tracks.selectedGenres);
+  const selectedYear = useAppSelector((state) => state.tracks.selectedYear);
 
-  // Данные для списков
-  const uniqueAuthors = getUniqueValuesByKey(data, 'author');
-  const uniqueGenres = getUniqueValuesByKey(data, 'genre');
+    // Данные для списков
+  const uniqueAuthors = getUniqueValuesByKey(tracks, 'author');
+  const uniqueGenres = getUniqueValuesByKey(tracks, 'genre');
   const uniqueYears = ['По умолчанию', 'Сначала новые', 'Сначала старые'];
 
   // Логика открытия/закрытия окон (взаимоисключающая)
@@ -27,22 +36,22 @@ export default function Filter() {
   };
 
   // Выбор автора (множественный)
-  const handleAuthorSelect = (author: string) => {
-    if (selectedAuthors.includes(author)) {
-      setSelectedAuthors(selectedAuthors.filter((item) => item !== author));
-    } else {
-      setSelectedAuthors([...selectedAuthors, author]);
-    }
-  };
+  // const handleAuthorSelect = (author: string) => {
+  //   if (selectedAuthors.includes(author)) {
+  //     setSelectedAuthors(selectedAuthors.filter((item) => item !== author));
+  //   } else {
+  //     setSelectedAuthors([...selectedAuthors, author]);
+  //   }
+  // };
 
   // Выбор жанра (множественный)
-  const handleGenreSelect = (genre: string) => {
-    if (selectedGenres.includes(genre)) {
-      setSelectedGenres(selectedGenres.filter((item) => item !== genre));
-    } else {
-      setSelectedGenres([...selectedGenres, genre]);
-    }
-  };
+  // const handleGenreSelect = (genre: string) => {
+  //   if (selectedGenres.includes(genre)) {
+  //     setSelectedGenres(selectedGenres.filter((item) => item !== genre));
+  //   } else {
+  //     setSelectedGenres([...selectedGenres, genre]);
+  //   }
+  // };
 
   return (
     <div className={styles.centerblock__filter}>
@@ -67,7 +76,7 @@ export default function Filter() {
                   key={index}
                   value={author}
                   isActive={selectedAuthors.includes(author)}
-                  onSelect={handleAuthorSelect}
+                  onSelect={() => dispatch(toggleAuthorFilter(author))}
                 />
               ))}
             </ul>
@@ -92,7 +101,7 @@ export default function Filter() {
                   key={index}
                   value={year}
                   isActive={selectedYear === year}
-                  onSelect={setSelectedYear} // Для одиночного выбора просто перезаписываем строку
+                  onSelect={() => dispatch(setYearFilter(year))} // Для одиночного выбора просто перезаписываем строку
                 />
               ))}
             </ul>
@@ -119,7 +128,7 @@ export default function Filter() {
                   key={index}
                   value={genre}
                   isActive={selectedGenres.includes(genre)}
-                  onSelect={handleGenreSelect}
+                  onSelect={() => dispatch(toggleGenreFilter(genre))}
                 />
               ))}
             </ul>
