@@ -3,74 +3,82 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { AxiosError } from 'axios';
-import { fetchAllTracks } from '@/services/tracks';
 import { fetchSelectionIds } from '@/services/selections';
 
 import Centerblock from '@/components/Centerblock/Centerblock';
 import { TrackType } from '@/sharedTypes/sharedTypes';
+import { useAppSelector } from '@/store/store';
 
 export default function CategoryPage() {
   const params = useParams<{ id: string }>();
   const id = params?.id;
+
+  // 1. Берем готовую базу всех треков из глобального стора
+  const { allTracks, fetchIsLoading, fetchError } = useAppSelector(
+    (state) => state.tracks,
+  );
+
+  // Локальные стейты только для этой конкретной подборки
   const [playlistName, setPlaylistName] = useState<string>('Подборка');
   const [tracks, setTracks] = useState<TrackType[]>([]);
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (!id) return;
 
-    // Запускаем оба запроса параллельно
-    Promise.all([fetchAllTracks(), fetchSelectionIds(id)])
-      .then(([allTracks, selectionData]) => {
-        // 1. Извлекаем и сохраняем динамическое имя подборки из API
-        const currentPlaylistName = selectionData?.name || 'Подборка';
-        setPlaylistName(currentPlaylistName);
+    setTimeout(() => {
+      setIsLoading(true);
+    }, 0);
 
-        // 2. Достаем массив элементов/ID треков из объекта подборки
-        const selectionItems = selectionData?.items || [];
+    // Ждем, пока FetchingTracks загрузит общую базу, и только потом делаем запрос
+    if (!fetchIsLoading && allTracks.length) {     
 
-        // Извлекаем чистые ID из ответа сервера (бэкенд может прислать [{ id: 1 }] или)
-        const selectionIds = selectionItems.map(
-          (
-            item:
-              { _id?: string | number; id?: string | number } | string | number,
-          ) =>
-            typeof item === 'object' && item !== null
-              ? item._id || item.id
-              : item,
-        );
+      fetchSelectionIds(id)
+        .then((selectionData) => {
+          const currentPlaylistName = selectionData?.name || 'Подборка';
+          setPlaylistName(currentPlaylistName);
 
-        // Оставляем только те полноценные треки, которые есть в подборке
-        const filteredTracks = allTracks.filter((track: TrackType) =>
-          selectionIds.includes(track._id),
-        );
+          const selectionItems = selectionData?.items || [];
 
-        setTracks(filteredTracks);
-      })
-      .catch((error) => {
-        if (error instanceof AxiosError) {
-          if (error.response) {
-            setError(error.response.data?.message || 'Ошибка сервера');
-          } else if (error.request) {
-            console.log(error.request);
-            setError('Что-то с интернетом');
+          // Получаем массив ID треков, входящих в эту категорию
+          const selectionIds = selectionItems.map(
+            (
+              item:
+                | { _id?: string | number; id?: string | number }
+                | string
+                | number,
+            ) =>
+              typeof item === 'object' && item !== null
+                ? item._id || item.id
+                : item,
+          );
+
+          // 2. Вместо повторного fetchAllTracks фильтруем уже имеющийся в Redux массив allTracks
+          const filteredTracks = allTracks.filter((track: TrackType) =>
+            selectionIds.includes(track._id),
+          );
+
+          setTracks(filteredTracks);
+          setIsLoading(false);
+        })
+        .catch((err) => {
+          if (err instanceof AxiosError) {
+            setError(err.response?.data?.message || 'Ошибка сервера');
           } else {
-            console.log('Error', error.message);
             setError('Неизвестная ошибка');
           }
-        }
-      });
-  }, [id]);
+          setIsLoading(false);
+        })        
+    }
+  }, [id, fetchIsLoading, allTracks]);
 
   return (
     <>
-      {error && (
-        <div style={{ color: 'red', fontWeight: 'bold', padding: '10px 0' }}>
-          {error}
-        </div>
-      )}
-
-      <Centerblock data={tracks} title={playlistName} />
+      <Centerblock data={tracks} 
+        title={playlistName} 
+        isLoading={isLoading}
+        errorRes={error || fetchError} />
     </>
   );
 }

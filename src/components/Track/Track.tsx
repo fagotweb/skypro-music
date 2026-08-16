@@ -8,16 +8,19 @@ import styles from './track.module.css';
 import { useAppDispatch, useAppSelector } from '@/store/store';
 import { setCurrentPlaylist, setCurrentTrack } from '@/store/features/trackSlice';
 import classNames from 'classnames';
+import { useLikeTrack } from '@/hooks/useTrackLike';
 
 // Описываем, что компонент Track принимает один трек в качестве props
 interface TrackProps {
   track: TrackType;
   playlist: TrackType[];
+  isLoading?: boolean;
 }
 
-export default function Track({ track, playlist }: TrackProps) {
+export default function Track({ track, playlist, isLoading }: TrackProps) {
   const dispatch = useAppDispatch();
   const isPlay = useAppSelector((state) => state.tracks.isPlay);
+  const { isLike, toggleLike,  isLoading: isLikeLoading} = useLikeTrack(track);
 
   // Достаем текущий трек
   const currentTrack = useAppSelector((state) => state.tracks.currentTrack);
@@ -29,13 +32,30 @@ export default function Track({ track, playlist }: TrackProps) {
   const isCurrentPlaying = isCurrent && isPlay;
 
   const onClickTrack = () => {
+    if (isLoading) return;
     dispatch(setCurrentTrack(track))
   }
 
   const onClickCurrentTrack = () => {
+    if (isLoading) return;
   dispatch(setCurrentTrack(track));
   dispatch(setCurrentPlaylist(playlist));
 }
+
+if (isLoading) {
+    return (
+      <div className={styles.playlist__track}>
+        <div className={styles.track__title}>
+          <div className={styles.track__titleImage}>
+            <svg className={styles.track__titleSvg}>
+              <use xlinkHref="/img/icon/sprite.svg#icon-note"></use>
+            </svg>
+          </div>
+          <div>Загрузка</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.playlist__track} onClick={onClickTrack}>
@@ -77,8 +97,15 @@ export default function Track({ track, playlist }: TrackProps) {
         </Link>
       </div>
       <div className="track__time">
-        <svg className={styles.track__timeSvg}>
-          <use xlinkHref="/img/icon/sprite.svg#icon-like"></use>
+        <svg className={classNames(styles.track__timeSvg, {
+            [styles.track__timeSvgActive]: isLike
+          })}
+          onClick={(e) => {
+            e.stopPropagation(); // Останавливаем всплытие, чтобы при клике на лайк трек не включался в плеере
+            if (!isLikeLoading) toggleLike();
+          }}
+          style={{ cursor: 'pointer' }}>
+          <use xlinkHref={isLike ? "/img/icon/sprite.svg#icon-like" : "/img/icon/sprite.svg#icon-dislike"}></use>
         </svg>
         <span className={styles.track__timeText}>
           {formatTime(track.duration_in_seconds)}

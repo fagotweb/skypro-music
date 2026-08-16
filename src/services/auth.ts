@@ -22,6 +22,11 @@ interface TokenResponse {
   refresh: string;
 }
 
+// Описываем структуру ответа для обновления токена
+interface RefreshTokenResponse {
+  access: string;
+}
+
 // 1. Сервис регистрации
 export async function signupUser({ email, password, username }: { email: string; password: string; username: string }): Promise<AuthResponse> {
   try {
@@ -57,5 +62,19 @@ export async function fetchTokens({ email, password }: { email: string; password
     return response.data;
   } catch {
     throw new Error('Не удалось получить токены доступа');
+  }
+}
+
+// 4. Сервис обновления токена
+export async function refreshToken({ refresh }: { refresh: string }): Promise<RefreshTokenResponse> {
+  try {
+    const response = await api.post('/user/token/refresh/', { refresh });
+    return response.data;
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const errorMessage = error.response?.data?.detail || 'Не удалось обновить токен доступа';
+      throw new Error(errorMessage);
+    }
+    throw new Error('Не удалось обновить токен доступа');
   }
 }

@@ -1,13 +1,21 @@
+'use client'
+
 import Link from 'next/link';
 import Image from 'next/image';
 import styles from './sidebar.module.css';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store/store';
+import { useLogout } from '@/hooks/useLogout';
 
 export default function Sidebar() {
+    const username = useSelector((state: RootState) => state.auth?.username || 'Гость');
+const logout = useLogout();
+
   return (
     <div className={styles.main__sidebar}>
       <div className={styles.sidebar__personal}>
-        <p className={styles.sidebar__personalName}>Sergey.Ivanov</p>
-        <div className={styles.sidebar__icon}>
+        <p className={styles.sidebar__personalName}>{username}</p>
+        <div className={styles.sidebar__icon} onClick={logout} style={{ cursor: 'pointer' }}>
           <svg>
             <use xlinkHref="/img/icon/sprite.svg#logout"></use>
           </svg>

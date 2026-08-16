@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import styles from './signin.module.css';
 import classNames from 'classnames';
@@ -7,8 +7,11 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { fetchTokens, loginUser } from '@/services/auth';
+import { useDispatch } from 'react-redux';
+import { setUsername, setTokens } from '@/store/features/authSlice';
 
 export default function Signin() {
+  const dispatch = useDispatch();
   const router = useRouter();
 
   // Создаем стейты для полей ввода и обработки ошибок
@@ -28,6 +31,12 @@ export default function Signin() {
 
       // 2. Делаем второй POST-запрос через Axios для получения access и refresh токенов
       const tokenData = await fetchTokens({ email, password });
+
+      // [НОВОЕ] 3. Отправляем данные в наш Redux Store через dispatch
+      dispatch(setUsername(userData.username));
+      dispatch(
+        setTokens({ access: tokenData.access, refresh: tokenData.refresh }),
+      );
 
       // 3. Сохраняем токены и юзернейм в localStorage
       localStorage.setItem('access_token', tokenData.access);
@@ -50,49 +59,54 @@ export default function Signin() {
 
   return (
     <>
-    <form onSubmit={handleLogin} style={{ display: 'contents' }}>
-      <Link href="/music/main">
-        <div className={styles.modal__logo}>
-          <Image src="/img/logo_modal.png" alt="logo" width={140} height={21} />
-        </div>
-      </Link>
+      <form onSubmit={handleLogin} style={{ display: 'contents' }}>
+        <Link href="/music/main">
+          <div className={styles.modal__logo}>
+            <Image
+              src="/img/logo_modal.png"
+              alt="logo"
+              width={140}
+              height={21}
+            />
+          </div>
+        </Link>
 
-      {/* Поле Почты */}
-      <input
-        className={classNames(styles.modal__input, styles.login)}
-        type="text"
-        placeholder="Почта"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        disabled={isLoading}
-        required
-      />
+        {/* Поле Почты */}
+        <input
+          className={classNames(styles.modal__input, styles.login)}
+          type="text"
+          placeholder="Почта"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          disabled={isLoading}
+          required
+        />
 
-      {/* Поле Пароля */}
-      <input
-        className={styles.modal__input}
-        type="password"
-        placeholder="Пароль"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        disabled={isLoading}
-        required
-      />
+        {/* Поле Пароля */}
+        <input
+          className={styles.modal__input}
+          type="password"
+          placeholder="Пароль"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          disabled={isLoading}
+          required
+        />
 
-      {/* Блок вывода ошибок */}
-      {error && <div className={styles.errorContainer}>{error}</div>}
+        {/* Блок вывода ошибок */}
+        {error && <div className={styles.errorContainer}>{error}</div>}
 
-      <button
-        className={styles.modal__btnEnter}
-        type="submit"
-        disabled={isLoading}
-      >
-        {isLoading ? 'Вход...' : 'Войти'}
-      </button>
+        <button
+          className={styles.modal__btnEnter}
+          type="submit"
+          disabled={isLoading}
+        >
+          {isLoading ? 'Вход...' : 'Войти'}
+        </button>
 
-      <button className={styles.modal__btnSignup} type="button">
-        <Link href="/auth/signup">Зарегистрироваться</Link>
-      </button>
+        <button className={styles.modal__btnSignup} type="button">
+          <Link href="/auth/signup">Зарегистрироваться</Link>
+        </button>
       </form>
     </>
   );

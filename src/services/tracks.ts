@@ -17,3 +17,25 @@ export async function fetchAllTracks(): Promise<TrackType[]> {
     throw new Error('Не удалось загрузить треки');
   }
 }
+
+// Функция добавления в избранное (Лайк)
+export async function likeTrackRequest(id: number, access: string): Promise<void> {
+  await api.post(`/catalog/track/${id}/favorite/`, {}, {
+    headers: { Authorization: `Bearer ${access}` }
+  });
+}
+
+// Функция удаления из избранного (Дизлайк)
+export async function dislikeTrackRequest(id: number, access: string): Promise<void> {
+  await api.delete(`/catalog/track/${id}/favorite/`, {
+    headers: { Authorization: `Bearer ${access}` }
+  });
+}
+
+// Функция получения всех избранных треков с бэкенда
+export async function getFavoriteTracksRequest(access: string): Promise<TrackType[]> {
+  const response = await api.get('/catalog/track/favorite/all/', {
+    headers: { Authorization: `Bearer ${access}` }
+  });
+  return response.data.data || response.data;
+}
