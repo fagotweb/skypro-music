@@ -26,6 +26,7 @@ export default function Bar() {
     isLike,
     toggleLike,
     isLoading: isLikeLoading,
+    errorMsg,
   } = useLikeTrack(currentTrack);
 
   const [isLoop, setIsLoop] = useState(false);
@@ -33,6 +34,13 @@ export default function Bar() {
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(0.55);
   const [isLoadedTrack, setIsLoadedTrack] = useState(false);
+
+  // Вывод ошибок лайков в плеере
+  useEffect(() => {
+    if (errorMsg) {
+      alert(`Ошибка лайка в плеере: ${errorMsg}`);
+    }
+  }, [errorMsg]);
 
   useEffect(() => {
     if (!audioRef.current || !currentTrack) return;

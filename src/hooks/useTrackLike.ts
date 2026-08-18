@@ -8,6 +8,7 @@ import { likeTrackRequest, dislikeTrackRequest } from '@/services/tracks';
 // 2. Импортируем редюсеры из вашего слайса
 import { addLikedTracks, removeLikedTracks } from '@/store/features/trackSlice'; 
 import { TrackType } from '@/sharedTypes/sharedTypes';
+import { useRouter } from 'next/navigation';
 
 // Описываем тип возвращаемого значения хука, как у преподавателя
 type ReturnTypeHook = {
@@ -19,6 +20,7 @@ type ReturnTypeHook = {
 
 export const useLikeTrack = (track: TrackType | null): ReturnTypeHook => {
   const dispatch = useAppDispatch();
+  const router = useRouter();
   
   // Достаем нужные данные из Redux
   const { favoriteTracks } = useAppSelector((state) => state.tracks);
@@ -58,6 +60,11 @@ export const useLikeTrack = (track: TrackType | null): ReturnTypeHook => {
       // Если запрос к бэкенду прошел успешно, отправляем экшен в Redux
       dispatch(actionSlice(track));
     } catch (error) {
+      // Ловим ошибку старого рефреш-токена из withReauth
+      if (error instanceof Error && error.message === 'Сессия устарела, необходима авторизация') {
+        router.push('/auth/signin');
+        return;
+      }
       if (error instanceof AxiosError) {
         if (error.response) {
           setErrorMsg(error.response.data.message || 'Ошибка сервера');

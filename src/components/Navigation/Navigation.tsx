@@ -46,7 +46,7 @@ export default function Navigation() {
         <div className={styles.nav__menu}>
           <ul className={styles.menu__list}>
             <li className={styles.menu__item}>
-              <Link href="#" className={styles.menu__link}>
+              <Link href="/music/main" className={styles.menu__link}>
                 Главное
               </Link>
             </li>

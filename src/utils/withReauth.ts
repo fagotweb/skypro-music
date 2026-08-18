@@ -1,7 +1,7 @@
 import { AxiosError } from 'axios';
-import { AppDispatch } from '@/store/store'; // Импорт типа диспетчера из вашего стора
-import { setAccess } from '@/store/features/authSlice'; // Ваш экшен обновления только access токена
-import { refreshToken } from '@/services/auth'; // Ваша функция обновления токена
+import { AppDispatch } from '@/store/store';
+import { clearUser, setAccess } from '@/store/features/authSlice';
+import { refreshToken } from '@/services/auth';
 
 export const withReauth = async <T>(
   apiFunction: (access: string) => Promise<T>,
@@ -21,17 +21,22 @@ export const withReauth = async <T>(
         // Вызываем вашу функцию refreshToken, передавая объект { refresh }
         const newAccessToken = await refreshToken({ refresh }); 
         
-        // Сохраняем новый токен в Redux через ваш редюсер setAccess
+        // Сохраняем новый токен в Redux через редюсер setAccess
         dispatch(setAccess(newAccessToken.access));
         
-        // [Важно] Обновляем токен в localStorage, чтобы он не потерялся при перезагрузке
+        // Обновляем токен в localStorage, чтобы он не потерялся при перезагрузке
         localStorage.setItem('access_token', newAccessToken.access);
 
         // 3. Повторяем исходный запрос уже с новым рабочим токеном
         return await apiFunction(newAccessToken.access);
-      } catch (refreshError) {
+      } catch {
         // Если даже refresh токен просрочен, пробрасываем ошибку дальше (например, для разлогина)
-        throw refreshError;
+        // Очищаем Redux и localStorage через наш редюсер
+        dispatch(clearUser());
+
+        // Пробрасываем ошибку дальше, чтобы хуки-вызыватели знали, что сессия умерла
+        throw new Error('Сессия устарела, необходима авторизация');
+      
       }
     }
 

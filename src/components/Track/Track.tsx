@@ -9,6 +9,7 @@ import { useAppDispatch, useAppSelector } from '@/store/store';
 import { setCurrentPlaylist, setCurrentTrack } from '@/store/features/trackSlice';
 import classNames from 'classnames';
 import { useLikeTrack } from '@/hooks/useTrackLike';
+import { useEffect } from 'react';
 
 // Описываем, что компонент Track принимает один трек в качестве props
 interface TrackProps {
@@ -20,7 +21,13 @@ interface TrackProps {
 export default function Track({ track, playlist, isLoading }: TrackProps) {
   const dispatch = useAppDispatch();
   const isPlay = useAppSelector((state) => state.tracks.isPlay);
-  const { isLike, toggleLike,  isLoading: isLikeLoading} = useLikeTrack(track);
+  const { isLike, toggleLike,  isLoading: isLikeLoading, errorMsg} = useLikeTrack(track);
+
+  useEffect(() => {
+  if (errorMsg) {
+    alert(`Ошибка лайка: ${errorMsg}`);
+  }
+}, [errorMsg]);
 
   // Достаем текущий трек
   const currentTrack = useAppSelector((state) => state.tracks.currentTrack);
