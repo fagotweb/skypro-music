@@ -13,6 +13,7 @@ import {
 } from '@/store/features/trackSlice';
 import { getTimePanel } from '@/utils/helpers';
 import ProgressBar from '../ProgressBar/ProgressBar';
+import { useLikeTrack } from '@/hooks/useTrackLike';
 
 export default function Bar() {
   // Получаем и трек, и статус проигрывания из Redux
@@ -21,6 +22,12 @@ export default function Bar() {
   const isPlay = useAppSelector((state) => state.tracks.isPlay);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const isShuffle = useAppSelector((state) => state.tracks.isShuffle);
+  const {
+    isLike,
+    toggleLike,
+    isLoading: isLikeLoading,
+    errorMsg,
+  } = useLikeTrack(currentTrack);
 
   const [isLoop, setIsLoop] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -28,44 +35,31 @@ export default function Bar() {
   const [volume, setVolume] = useState(0.55);
   const [isLoadedTrack, setIsLoadedTrack] = useState(false);
 
+  // Вывод ошибок лайков в плеере
   useEffect(() => {
-    if (currentTrack && audioRef.current) {
-      audioRef.current
-        .play()
-        .then(() => {
-          // Переключаем статус в true только ПОСЛЕ успешного старта аудио
-          dispatch(setIsPlay(true));
-        })
-        .catch((error) => {
-          console.error('Ошибка автозапуска аудио:', error);
-        });
+    if (errorMsg) {
+      alert(`Ошибка лайка в плеере: ${errorMsg}`);
     }
-  }, [currentTrack, dispatch]);
+  }, [errorMsg]);
 
-  // Автоматический запуск аудио при смене трека в списке
   useEffect(() => {
-    if (currentTrack && audioRef.current) {
-      audioRef.current.play();
-      dispatch(setIsPlay(true));
+    if (!audioRef.current || !currentTrack) return;
+
+    if (isPlay) {
+      const playPromise = audioRef.current.play();
+
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {})
+          .catch((error) => {
+            console.info('Загрузка аудио была скорректирована:', error.message);
+          });
+      }
+    } else {
+      audioRef.current.pause();
     }
-  }, [currentTrack, dispatch]);
+  }, [currentTrack, isPlay]);
 
-  // Сбрасываем статус загрузки, как только кликнули на новую песню
-  useEffect(() => {
-  if (currentTrack && audioRef.current) {
-    // 1. Сбрасываем статус загрузки
-    setIsLoadedTrack(false); 
-
-    audioRef.current.play()
-      .then(() => {
-        dispatch(setIsPlay(true)); 
-      })
-      .catch((error) => {
-        console.error('Ошибка автозапуска аудио:', error);
-      });
-  }
-
-}, [currentTrack, dispatch]);
   if (!currentTrack) return <></>;
 
   const playTrack = () => {
@@ -88,13 +82,14 @@ export default function Bar() {
 
   const onTimeUpdate = () => {
     if (audioRef.current) {
-      setCurrentTime(audioRef.current.currentTime); // Записываем вместо console.log
+      setCurrentTime(audioRef.current.currentTime);
     }
   };
 
   const onLoadedMetadata = () => {
-    if (audioRef.current) {
-      setDuration(audioRef.current.duration); // Запоминаем общую длину трека
+    if (audioRef.current && currentTrack) {
+      setDuration(audioRef.current.duration);
+
       setIsLoadedTrack(true);
     }
   };
@@ -115,6 +110,12 @@ export default function Bar() {
     }
   };
 
+  const onTrackEnded = () => {
+    if (!isLoop) {
+      dispatch(setNextTrack());
+    }
+  };
+
   return (
     <div className={styles.bar}>
       <div className={styles.bar__content}>
@@ -127,7 +128,7 @@ export default function Bar() {
           loop={isLoop} /* <-- Зацикливание зависит от состояния кнопки */
           onTimeUpdate={onTimeUpdate}
           onLoadedMetadata={onLoadedMetadata}
-          onEnded={() => dispatch(setNextTrack())} // <-- Когда трек кончится, плеер сам включит следующий
+          onEnded={onTrackEnded}
         />
         <div className={styles.player__loadingStatus}>
           {!isLoadedTrack && <span>Идет загрузка...</span>}
@@ -260,10 +261,16 @@ export default function Bar() {
 
               <div className={styles.trackPlay__likeDis}>
                 <div
-                  className={`${styles.player__btnShuffle} ${styles.btnIcon}`}
+                  className={`${styles.trackPlay__like} ${styles.btnIcon}`}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => {
+                    if (!isLikeLoading) toggleLike();
+                  }}
                 >
                   <Image
-                    src="/img/icon/like.svg"
+                    src={
+                      isLike ? '/img/icon/like.svg' : '/img/icon/dislike.svg'
+                    }
                     alt="like"
                     width={14}
                     height={12}
@@ -272,7 +279,7 @@ export default function Bar() {
                     style={{ width: 'auto', height: 'auto' }}
                   />
                 </div>
-                <div
+                {/* <div
                   className={`${styles.trackPlay__dislike} ${styles.btnIcon}`}
                 >
                   <Image
@@ -284,7 +291,7 @@ export default function Bar() {
                     priority
                     style={{ width: 'auto', height: 'auto' }}
                   />
-                </div>
+                </div> */}
               </div>
             </div>
           </div>
