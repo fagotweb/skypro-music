@@ -1,14 +1,18 @@
 'use client';
 
-import { useState } from 'react';
 import styles from './search.module.css';
 import Image from 'next/image';
+import { useAppDispatch, useAppSelector } from '@/store/store';
+import { setSearchQuery } from '@/store/features/trackSlice';
 
 export default function Search() {
-  const [searchInput, setSearchInput] = useState('');
+  const dispatch = useAppDispatch();
+
+  // Достаем актуальное значение строки поиска из Redux, чтобы инпут был контролируемым
+  const searchQuery = useAppSelector((state) => state.tracks.searchQuery || '');
 
   const onSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchInput(e.target.value);
+    dispatch(setSearchQuery(e.target.value));
   };
 
   return (
@@ -25,7 +29,7 @@ export default function Search() {
         type="search"
         placeholder="Поиск"
         name="search"
-        value={searchInput}
+        value={searchQuery}
         onChange={onSearchInput}
       />
     </div>
