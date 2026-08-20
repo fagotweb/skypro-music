@@ -1,12 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-// import Image from 'next/image';
 import { TrackType } from '@/sharedTypes/sharedTypes';
 import { formatTime } from '@/utils/helpers';
 import styles from './track.module.css';
 import { useAppDispatch, useAppSelector } from '@/store/store';
-import { setCurrentPlaylist, setCurrentTrack } from '@/store/features/trackSlice';
+import {
+  setCurrentPlaylist,
+  setCurrentTrack,
+} from '@/store/features/trackSlice';
 import classNames from 'classnames';
 import { useLikeTrack } from '@/hooks/useTrackLike';
 import { useEffect } from 'react';
@@ -21,13 +23,18 @@ interface TrackProps {
 export default function Track({ track, playlist, isLoading }: TrackProps) {
   const dispatch = useAppDispatch();
   const isPlay = useAppSelector((state) => state.tracks.isPlay);
-  const { isLike, toggleLike,  isLoading: isLikeLoading, errorMsg} = useLikeTrack(track);
+  const {
+    isLike,
+    toggleLike,
+    isLoading: isLikeLoading,
+    errorMsg,
+  } = useLikeTrack(track);
 
   useEffect(() => {
-  if (errorMsg) {
-    alert(`Ошибка лайка: ${errorMsg}`);
-  }
-}, [errorMsg]);
+    if (errorMsg) {
+      alert(`Ошибка лайка: ${errorMsg}`);
+    }
+  }, [errorMsg]);
 
   // Достаем текущий трек
   const currentTrack = useAppSelector((state) => state.tracks.currentTrack);
@@ -40,16 +47,16 @@ export default function Track({ track, playlist, isLoading }: TrackProps) {
 
   const onClickTrack = () => {
     if (isLoading) return;
-    dispatch(setCurrentTrack(track))
-  }
+    dispatch(setCurrentTrack(track));
+  };
 
   const onClickCurrentTrack = () => {
     if (isLoading) return;
-  dispatch(setCurrentTrack(track));
-  dispatch(setCurrentPlaylist(playlist));
-}
+    dispatch(setCurrentTrack(track));
+    dispatch(setCurrentPlaylist(playlist));
+  };
 
-if (isLoading) {
+  if (isLoading) {
     return (
       <div className={styles.playlist__track}>
         <div className={styles.track__title}>
@@ -104,15 +111,23 @@ if (isLoading) {
         </Link>
       </div>
       <div className="track__time">
-        <svg className={classNames(styles.track__timeSvg, {
-            [styles.track__timeSvgActive]: isLike
+        <svg
+          className={classNames(styles.track__timeSvg, {
+            [styles.track__timeSvgActive]: isLike,
           })}
           onClick={(e) => {
             e.stopPropagation(); // Останавливаем всплытие, чтобы при клике на лайк трек не включался в плеере
             if (!isLikeLoading) toggleLike();
           }}
-          style={{ cursor: 'pointer' }}>
-          <use xlinkHref={isLike ? "/img/icon/sprite.svg#icon-like" : "/img/icon/sprite.svg#icon-dislike"}></use>
+          style={{ cursor: 'pointer' }}
+        >
+          <use
+            xlinkHref={
+              isLike
+                ? '/img/icon/sprite.svg#icon-like'
+                : '/img/icon/sprite.svg#icon-dislike'
+            }
+          ></use>
         </svg>
         <span className={styles.track__timeText}>
           {formatTime(track.duration_in_seconds)}

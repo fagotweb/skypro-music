@@ -41,7 +41,7 @@ export const getTimePanel = (
   currentTime: number,
   totalTime: number | undefined,
 ) => {
-  if (totalTime) {
+  if (totalTime !== undefined && totalTime !== null) {
     return `${formatTime(currentTime)} / ${formatTime(totalTime)}`;
   }
 };

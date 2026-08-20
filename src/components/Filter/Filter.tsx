@@ -35,24 +35,6 @@ export default function Filter({ tracks }: FilterProps) {
     setActiveFilter(activeFilter === filterName ? null : filterName);
   };
 
-  // Выбор автора (множественный)
-  // const handleAuthorSelect = (author: string) => {
-  //   if (selectedAuthors.includes(author)) {
-  //     setSelectedAuthors(selectedAuthors.filter((item) => item !== author));
-  //   } else {
-  //     setSelectedAuthors([...selectedAuthors, author]);
-  //   }
-  // };
-
-  // Выбор жанра (множественный)
-  // const handleGenreSelect = (genre: string) => {
-  //   if (selectedGenres.includes(genre)) {
-  //     setSelectedGenres(selectedGenres.filter((item) => item !== genre));
-  //   } else {
-  //     setSelectedGenres([...selectedGenres, genre]);
-  //   }
-  // };
-
   return (
     <div className={styles.centerblock__filter}>
       <div className={styles.filter__title}>Искать по:</div>
