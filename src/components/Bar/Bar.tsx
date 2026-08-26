@@ -14,6 +14,7 @@ import {
 import { getTimePanel } from '@/utils/helpers';
 import ProgressBar from '../ProgressBar/ProgressBar';
 import { useLikeTrack } from '@/hooks/useTrackLike';
+import { toast } from 'react-toastify';
 
 export default function Bar() {
   // Получаем и трек, и статус проигрывания из Redux
@@ -38,7 +39,7 @@ export default function Bar() {
   // Вывод ошибок лайков в плеере
   useEffect(() => {
     if (errorMsg) {
-      alert(`Ошибка лайка в плеере: ${errorMsg}`);
+      toast.error(`Ошибка лайка в плеере: ${errorMsg}`);
     }
   }, [errorMsg]);
 
@@ -121,7 +122,6 @@ export default function Bar() {
       <div className={styles.bar__content}>
         <audio
           className={styles.audio}
-          // controls
           autoPlay
           ref={audioRef}
           src={currentTrack.track_file}
@@ -278,20 +278,7 @@ export default function Bar() {
                     priority
                     style={{ width: 'auto', height: 'auto' }}
                   />
-                </div>
-                {/* <div
-                  className={`${styles.trackPlay__dislike} ${styles.btnIcon}`}
-                >
-                  <Image
-                    src="/img/icon/dislike.svg"
-                    alt="dislike"
-                    width={14}
-                    height={12}
-                    className={styles.trackPlay__dislikeSvg}
-                    priority
-                    style={{ width: 'auto', height: 'auto' }}
-                  />
-                </div> */}
+                </div>                
               </div>
             </div>
           </div>

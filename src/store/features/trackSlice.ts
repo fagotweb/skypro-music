@@ -12,9 +12,9 @@ type initialStateType = {
   selectedGenres: string[];
   selectedYear: string;
   allTracks: TrackType[];
-  favoriteTracks: TrackType[];  
+  favoriteTracks: TrackType[];
   fetchError: null | string;
-  fetchIsLoading: boolean;
+  fetchIsLoading: boolean;  
 };
 
 const initialState: initialStateType = {
@@ -30,26 +30,28 @@ const initialState: initialStateType = {
   allTracks: [],
   favoriteTracks: [],
   fetchError: null,
-  fetchIsLoading: true,
+  fetchIsLoading: true,  
 };
 
 // Хелпер для переключения треков
 const getNextOrPrevTrack = (
   playlist: TrackType[],
   currentTrack: TrackType | null,
-  direction: 'next' | 'prev'
+  direction: 'next' | 'prev',
 ): TrackType | null => {
   if (!currentTrack || playlist.length === 0) return null;
-  
+
   // Ищем индекс строго по id/ _id
-  const currentIndex = playlist.findIndex((track) => track._id === currentTrack._id);
-  
+  const currentIndex = playlist.findIndex(
+    (track) => track._id === currentTrack._id,
+  );
+
   if (currentIndex === -1) return null;
 
   if (direction === 'next') {
     const nextIndex = currentIndex + 1;
     // Если это последний трек, можно вернуть null или зациклить на 0 (playlist[0])
-    return nextIndex < playlist.length ? playlist[nextIndex] : null; 
+    return nextIndex < playlist.length ? playlist[nextIndex] : null;
   } else {
     const prevIndex = currentIndex - 1;
     return prevIndex >= 0 ? playlist[prevIndex] : null;
@@ -85,10 +87,16 @@ const trackSlice = createSlice({
     // ЭКШЕН СЛЕДУЮЩЕГО ТРЕКА
     setNextTrack: (state) => {
       // Выбираем активный плейлист (обычный или перемешанный)
-      const playlist = state.isShuffle ? state.shuffledPlaylist : state.currentPlaylist;
-      
-      const nextTrack = getNextOrPrevTrack(playlist, state.currentTrack, 'next');
-      
+      const playlist = state.isShuffle
+        ? state.shuffledPlaylist
+        : state.currentPlaylist;
+
+      const nextTrack = getNextOrPrevTrack(
+        playlist,
+        state.currentTrack,
+        'next',
+      );
+
       if (nextTrack) {
         state.currentTrack = nextTrack;
       }
@@ -96,10 +104,16 @@ const trackSlice = createSlice({
 
     // ЭКШЕН ПРЕДЫДУЩЕГО ТРЕКА
     setPrevTrack: (state) => {
-      const playlist = state.isShuffle ? state.shuffledPlaylist : state.currentPlaylist;
-      
-      const prevTrack = getNextOrPrevTrack(playlist, state.currentTrack, 'prev');
-      
+      const playlist = state.isShuffle
+        ? state.shuffledPlaylist
+        : state.currentPlaylist;
+
+      const prevTrack = getNextOrPrevTrack(
+        playlist,
+        state.currentTrack,
+        'prev',
+      );
+
       if (prevTrack) {
         state.currentTrack = prevTrack;
       }
@@ -137,18 +151,21 @@ const trackSlice = createSlice({
     setFavoriteTracks: (state, action: PayloadAction<TrackType[]>) => {
       state.favoriteTracks = action.payload;
     },
+
     addLikedTracks: (state, action: PayloadAction<TrackType>) => {
-    // Проверяем, нет ли уже этого трека в массиве, чтобы избежать дубликатов
-    const exists = state.favoriteTracks.some((track) => track._id === action.payload._id);
-    if (!exists) {
-      state.favoriteTracks.push(action.payload);
-    }
-  },
-  removeLikedTracks: (state, action: PayloadAction<TrackType>) => {
-    state.favoriteTracks = state.favoriteTracks.filter(
-      (track) => track._id !== action.payload._id
-    );
-  },
+      // Проверяем, нет ли уже этого трека в массиве, чтобы избежать дубликатов
+      const exists = state.favoriteTracks.some(
+        (track) => track._id === action.payload._id,
+      );
+      if (!exists) {
+        state.favoriteTracks.push(action.payload);
+      }
+    },
+    removeLikedTracks: (state, action: PayloadAction<TrackType>) => {
+      state.favoriteTracks = state.favoriteTracks.filter(
+        (track) => track._id !== action.payload._id,
+      );
+    },
     setFetchError: (state, action: PayloadAction<string>) => {
       state.fetchError = action.payload;
     },
