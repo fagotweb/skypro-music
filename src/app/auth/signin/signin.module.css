@@ -123,8 +123,8 @@
 
 .modal__btnSignup a {
   color: #000000;
-  text-decoration: none; /* Убирает подчеркивание ссылки, если оно есть */
-  width: 100%; /* Чтобы вся площадь кнопки была кликабельной */
+  text-decoration: none;
+  width: 100%;
   height: 100%;
   display: flex;
   align-items: center;

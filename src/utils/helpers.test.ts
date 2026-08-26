@@ -4,7 +4,7 @@ import { TrackType } from '@/sharedTypes/sharedTypes'
 
 describe('Тестирование чистой функции formatTime', () => {
   test('должна правильно форматировать двузначные секунды', () => {
-    expect(formatTime(65)).toBe('1:05'); // или '01:05' в зависимости от вашей реализации
+    expect(formatTime(65)).toBe('1:05');
   });
 
   test('должна правильно обрабатывать ровное количество минут', () => {

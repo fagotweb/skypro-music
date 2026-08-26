@@ -109,7 +109,7 @@
 }
 
 .track__timeSvg:hover {
-  transform: scale(1.15); /* Слегка увеличиваем при наведении */
+  transform: scale(1.15);
   cursor: pointer;
 }
 

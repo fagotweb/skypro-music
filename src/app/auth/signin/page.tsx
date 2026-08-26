@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { fetchTokens, loginUser } from '@/services/auth';
 import { useDispatch } from 'react-redux';
 import { setUsername, setTokens } from '@/store/features/authSlice';
+import { toast } from 'react-toastify';
 
 export default function Signin() {
   const dispatch = useDispatch();
@@ -32,7 +33,7 @@ export default function Signin() {
       // 2. Делаем второй POST-запрос через Axios для получения access и refresh токенов
       const tokenData = await fetchTokens({ email, password });
 
-      // [НОВОЕ] 3. Отправляем данные в наш Redux Store через dispatch
+      // 3. Отправляем данные в наш Redux Store через dispatch
       dispatch(setUsername(userData.username));
       dispatch(
         setTokens({ access: tokenData.access, refresh: tokenData.refresh }),
@@ -42,6 +43,8 @@ export default function Signin() {
       localStorage.setItem('access_token', tokenData.access);
       localStorage.setItem('refresh_token', tokenData.refresh);
       localStorage.setItem('username', userData.username);
+
+      toast.success(`Добро пожаловать, ${userData.username}!`);
 
       // 4. Перенаправляем на главную страницу приложения
       router.push('/music/main');

@@ -14,12 +14,7 @@ type initialStateType = {
   allTracks: TrackType[];
   favoriteTracks: TrackType[];
   fetchError: null | string;
-  fetchIsLoading: boolean;
-  // filters: {
-  //   authors: string[];
-  //   genres: string[];
-  //   years: string;
-  // };
+  fetchIsLoading: boolean;  
 };
 
 const initialState: initialStateType = {
@@ -35,12 +30,7 @@ const initialState: initialStateType = {
   allTracks: [],
   favoriteTracks: [],
   fetchError: null,
-  fetchIsLoading: true,
-  // filters: {
-    // authors: [],
-    // genres: [],
-    // years: 'По умолчанию',
-  // },
+  fetchIsLoading: true,  
 };
 
 // Хелпер для переключения треков
@@ -161,18 +151,6 @@ const trackSlice = createSlice({
     setFavoriteTracks: (state, action: PayloadAction<TrackType[]>) => {
       state.favoriteTracks = action.payload;
     },
-
-    // setFilterAuthors: (state, action: PayloadAction<string>) => {
-    //   const author = action.payload;
-
-    //   if (state.filters.authors.includes(author)) {
-    //     state.filters.authors = state.filters.authors.filter((el) => {
-    //       return el !== author;
-    //     });
-    //   } else {
-    //     state.filters.authors = [...state.filters.authors, author];
-    //   }
-    // },
 
     addLikedTracks: (state, action: PayloadAction<TrackType>) => {
       // Проверяем, нет ли уже этого трека в массиве, чтобы избежать дубликатов

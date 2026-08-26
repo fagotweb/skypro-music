@@ -12,6 +12,7 @@ import {
 import classNames from 'classnames';
 import { useLikeTrack } from '@/hooks/useTrackLike';
 import { useEffect } from 'react';
+import { toast } from 'react-toastify';
 
 // Описываем, что компонент Track принимает один трек в качестве props
 interface TrackProps {
@@ -32,7 +33,7 @@ export default function Track({ track, playlist, isLoading }: TrackProps) {
 
   useEffect(() => {
     if (errorMsg) {
-      alert(`Ошибка лайка: ${errorMsg}`);
+      toast.error(`Ошибка лайка: ${errorMsg}`);
     }
   }, [errorMsg]);
 

@@ -14,7 +14,7 @@ export default function FavoritesPage() {
 
   const access = useAppSelector((state) => state.auth.access);
 
-  // 2. Защита маршрута: если нет токена access -> отправляем на главную
+  // Защита маршрута: если нет токена access -> отправляем на главную
   useEffect(() => {
     if (!access) {
       router.replace('/music/main');

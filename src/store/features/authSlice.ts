@@ -13,7 +13,7 @@ const initialState: initialStateType = {
 };
 
 const authSlice = createSlice({
-  name: 'authSlice', // имя как у преподавателя
+  name: 'authSlice',
   initialState,
   reducers: {
     setUsername: (state, action: PayloadAction<string>) => {
