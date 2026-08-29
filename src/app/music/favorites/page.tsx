@@ -12,14 +12,21 @@ export default function FavoritesPage() {
     (state) => state.tracks,
   );
 
-  const access = useAppSelector((state) => state.auth.access);
+   // Достаем токен и флаг проверки из состояния auth
+  const { access, isAuthChecked } = useAppSelector((state) => state.auth);
 
   // Защита маршрута: если нет токена access -> отправляем на главную
   useEffect(() => {
-    if (!access) {
+    // Редирект работает после того, как хук useInitAuth прочитает localStorage
+    if (isAuthChecked && !access) {
       router.replace('/music/main');
     }
-  }, [access, router]);
+  }, [access, isAuthChecked, router]);
+
+  // Пока приложение считывает токены из localStorage, показываем загрузку
+  if (!isAuthChecked) {
+    return <div>Проверка авторизации...</div>;
+  }
 
   // Если токена нет, возвращаем null, чтобы страница не моргала старым контентом во время редиректа
   if (!access) {

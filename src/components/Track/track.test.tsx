@@ -1,6 +1,5 @@
 import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
-import { data } from '@/data';
 import { TrackType } from '@/sharedTypes/sharedTypes';
 import ReduxProvider from '@/store/ReduxProvider';
 import { formatTime } from '@/utils/helpers';
@@ -16,8 +15,20 @@ jest.mock('@/hooks/useTrackLike', () => ({
   }),
 }));
 
-const mockTracks: TrackType[] = data;
-const mockTrack: TrackType = data[0]; // Берем первый трек из массива
+const mockTrack: TrackType = {
+  _id: 1,
+  name: 'Тестовый трек',
+  author: 'Тестовый автор',
+  album: 'Тестовый альбом',
+  duration_in_seconds: 180,
+  release_date: '2026-01-01',
+  genre: ['Pop'],
+  logo: null,
+  track_file: 'test.mp3',
+  stared_user: []
+};
+
+const mockTracks: TrackType[] = [mockTrack];
 
 describe('Track component', () => {
   test('Отрисовка данных трека и базовые взаимодействия', () => {
